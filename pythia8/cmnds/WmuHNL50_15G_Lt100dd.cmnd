@@ -1,0 +1,48 @@
+Beams:idA = 2212                   ! first beam, p = 2212, pbar = -2212
+Beams:idB = 2212                   ! second beam, p = 2212, pbar = -2212
+Beams:eCM = 13000.                 ! CM energy of collision
+
+Main:numberOfEvents = 5000
+
+50:new = N2 N2 2 0 0 15.0 0.0 0.0 0.0 100.0 0 1 0 1 0 # 15.0 GeV & 100.0 mm
+50:isResonance = false
+50:addChannel = 1 0.50 23 -13  13 -14
+50:addChannel = 1 0.50 23  13 -13 14
+50:mayDecay = on
+WeakSingleBoson:ffbar2W = on		! create W+ and W- bosons
+24:onMode = off						! switch off all W decays
+24:addchannel = 1 1.0 103 -13 50	! W decay in mu+ HNL
+ParticleDecays:limitTau0 = off 		! switch off decaying lifetime limits
+ParticleDecays:tau0Max = 600.0
+
+Tune:ee = 7                         ! use Monash 2013 Tune by Peter Skands
+PDF:pSet = 13             ! NNPDF2.3 QCD+QED LO alpha_s(M_Z) = 0.130. Will be used everywhere 
+
+
+ColourReconnection:range = 1.71
+StandardModel:sin2thetaW = 0.23113
+StandardModel:sin2thetaWbar = 0.23146
+
+SpaceShower:pTmaxMatch = 1
+SpaceShower:pTmaxFudge = 1
+SpaceShower:MEcorrections = off
+TimeShower:pTmaxMatch = 1
+TimeShower:pTmaxFudge = 1
+TimeShower:MEcorrections = off
+TimeShower:globalRecoil = on
+TimeShower:limitPTmaxGlobal = on
+TimeShower:nMaxGlobalRecoil = 1
+TimeShower:globalRecoilMode = 2
+TimeShower:nMaxGlobalBranch = 1.
+TimeShower:weightGluonToQuark=1.
+Check:epTolErr = 1e-2
+SpaceShower:rapidityOrder = on
+SigmaProcess:alphaSvalue = 0.140
+SpaceShower:pT0Ref = 1.56
+#SpaceShower:pTmaxFudge = 0.91
+SpaceShower:pTdampFudge = 1.05
+SpaceShower:alphaSvalue = 0.127
+TimeShower:alphaSvalue = 0.127
+BeamRemnants:primordialKThard = 1.88
+MultipartonInteractions:pT0Ref = 2.09
+MultipartonInteractions:alphaSvalue = 0.126
