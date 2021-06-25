@@ -4,7 +4,7 @@ Beams:eCM = 13000.                 ! CM energy of collision
 
 Main:numberOfEvents = 5000
 
-50:new = N2 N2 2 0 0 15.0 0.0 0.0 0.0 100.0 0 1 0 1 0 # 15.0 GeV & 100.0 mm
+50:new = N2 N2 2 0 0 15.0 0.0 0.0 0.0 100.0 0 1 0 1 0 ! 15.0 GeV & 100.0 mm
 50:isResonance = false
 50:addChannel = 1 0.50 23 -13  13 -14
 50:addChannel = 1 0.50 23  13 -13 14
