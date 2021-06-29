@@ -13,12 +13,10 @@
 
 using namespace std;
 
-void AnalysisEvents(ExRootTreeReader* treeReader, DelphesNtuple* ntuple, bool debug=false) {
-  // TODO: 
-  // 1) add 4 vector of the generated tau
-  // 2) label gen jets produced with tau
-  // 3) match tracks to jets
-  // TODO: add di-tau
+void AnalysisEvents(ExRootTreeReader* treeReader,
+  DelphesNtuple* ntuple, bool debug=false) 
+{
+
   TClonesArray *branchParticle = treeReader->UseBranch("Particle");
   TClonesArray *branchElectron = treeReader->UseBranch("Electron");
   TClonesArray *branchPhoton = treeReader->UseBranch("Photon");
@@ -51,7 +49,7 @@ void AnalysisEvents(ExRootTreeReader* treeReader, DelphesNtuple* ntuple, bool de
   jetRadius = 0.4, jetPtmin = 20.0;
   GhostAssociation::Config jetConfig = {jetRadius, jetPtmin, fastjet::antikt_algorithm};
 
-  for(entry = 39; entry < allEntries; ++entry) {
+  for(entry = 0; entry < allEntries; ++entry) {
     treeReader->ReadEntry(entry);
     ntuple->Clear();
 
@@ -148,13 +146,15 @@ void AnalysisEvents(ExRootTreeReader* treeReader, DelphesNtuple* ntuple, bool de
     // loop over gen particles to find tau lepton
     for(i = 0; i < branchParticle->GetEntriesFast(); ++i) {
       particle = (GenParticle*) branchParticle->At(i);
-      if(abs(particle->PID) == 15) {
+      // status=23, outgoing particles from the hardest subprocess.
+      if(abs(particle->PID) == 15 && particle->Status == 23) {
         ntuple->FillTau(particle);
-        if(debug) printf("GenParticle %d %d", particle->Status, particle->Charge);
+        if(debug) printf("GenParticle %d %d %d\n",
+                    particle->PID, particle->Status, particle->Charge);
       }
     }
 
-    if (debug) printf("Jet container size: %ld, track container size: %ld, tower container size: %ld",
+    if (debug) printf("Jet container size: %ld, track container size: %ld, tower container size: %ld\n",
       jetContainer.size(), trackContainer.size(), towerContainer.size());
 
     ntuple->Fill();
@@ -206,6 +206,7 @@ int main(int argc, char** argv)
   ntuple->BookRecoJets(withTowers);
   ntuple->BookTracks();
   ntuple->BookTowers();
+  ntuple->BookTaus();
 
   ExRootTreeReader *treeReader = new ExRootTreeReader(chain);
 

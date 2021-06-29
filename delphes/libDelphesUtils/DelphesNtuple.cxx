@@ -11,6 +11,7 @@ DelphesNtuple::DelphesNtuple(std::string& filename):
   useTracks = false;
   useTowers = false;
   useJetGhostTracks = false;
+  useTruthTaus = false;
 }
 
 DelphesNtuple::~DelphesNtuple(){
