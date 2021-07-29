@@ -2,7 +2,7 @@ Beams:idA = 2212                   ! first beam, p = 2212, pbar = -2212
 Beams:idB = 2212                   ! second beam, p = 2212, pbar = -2212
 Beams:eCM = 13000.                 ! CM energy of collision
 
-Main:numberOfEvents = 5000
+Main:numberOfEvents = 1000000
 
 WeakSingleBoson:ffbar2gmZ = on		! pp -> gamma*/Z^0 -> ff
 WeakZ0:gmZmode = 1					! only gamma*

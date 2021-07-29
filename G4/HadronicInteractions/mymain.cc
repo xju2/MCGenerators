@@ -54,9 +54,13 @@ int main( int argc, char** argv) {
   G4cout << "=== Test of the HadronicGenerator ===" << G4endl;
   int opt;
   int n_evts = 10;
+  double min_energy = 15.0;
+  double max_energy = 30.0;
+
   std::string outname("pion_minus_H.csv");
   bool verbose = false;
-  while ((opt = getopt(argc, argv, "n:o:v")) != -1) {
+  bool help = false;
+  while ((opt = getopt(argc, argv, "n:o:v:t:b:h")) != -1) {
     switch (opt) {
       case 'n':
         n_evts = atoi(optarg);
@@ -67,8 +71,26 @@ int main( int argc, char** argv) {
       case 'v':
         verbose = true;
         break;
+	  case 'b':
+		min_energy = atof(optarg);
+		break;
+	  case 't':
+		max_energy = atof(optarg);
+		break;
+	  case 'h':
+		help = true;
       default:
-        ;
+		fprintf(stderr, "Usage: %s [-hv] [-n NUM_EVTS] [-o OUTNAME] [-b MIN_ENERGY] [-t MAX_ENERGY]\n",
+				              argv[0]);
+		if (help) {
+			printf("         -n NUM_EVTS: number of events to be generated. Default is 10\n");
+			printf("         -o OUTNAME:  output filename . Default is \"pion_minus_H.csv\"\n");
+			printf("         -b MIN_ENERGY:  minimum energy of incoming particle in GeV. Default is 15 \n");
+			printf("         -t MAX_ENERGY:  maximum energy of incoming particle in GeV. Default is 30 \n");
+			printf("         -v :  print debug info\n");
+			printf("         -h HELP:  print this info\n");
+		}
+		return 0;
     }
   }
   // See the HadronicGenerator class for the possibilities and meaning of the "physics cases".
@@ -78,8 +100,8 @@ int main( int argc, char** argv) {
   // The kinetic energy of the projectile will be sampled randomly, with flat probability
   // in the interval [minEnergy, maxEnergy].
   const G4String namePhysics   = "FTFP_BERT_ATL";  //***LOOKHERE***  PHYSICS CASE
-  const G4double minEnergy     = 15.0*CLHEP::GeV;  //***LOOKHERE***  PROJECTILE MIN Ekin
-  const G4double maxEnergy     = 30.0*CLHEP::GeV;  //***LOOKHERE***  PROJECTILE MAX Ekin
+  const G4double minEnergy     = min_energy*CLHEP::GeV;  //***LOOKHERE***  PROJECTILE MIN Ekin
+  const G4double maxEnergy     = max_energy*CLHEP::GeV;  //***LOOKHERE***  PROJECTILE MAX Ekin
   const G4int    numCollisions = n_evts;             //***LOOKHERE***  NUMBER OF COLLISIONS, 1000
 
   // Vector of Geant4 names of hadron projectiles: one of this will be sampled randomly
