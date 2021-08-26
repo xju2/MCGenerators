@@ -16,6 +16,7 @@ target_link_libraries(DelphesUtils
     Delphes
     ROOT::Core ROOT::Tree 
     ROOT::TreePlayer ROOT::Physics
+    parquet
 )
 
 install(TARGETS DelphesUtils 
