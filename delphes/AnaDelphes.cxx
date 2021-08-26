@@ -55,7 +55,7 @@ void AnalysisEvents(ExRootTreeReader* treeReader,
     ntuple->Clear();
 
     // at least one reco jet in the event
-    if (branchJet->GetEntriesFast() < 1) continue;
+    // if (branchJet->GetEntriesFast() < 1) continue;
     
     // save tracks
     // tracks will be matched to reco jets via ghost matching.
@@ -86,7 +86,6 @@ void AnalysisEvents(ExRootTreeReader* treeReader,
       ntuple->FillRecoJetGhostTracks(trackIdx);
     }
     ntuple->FillRecoJetCnt(n_jets, n_bjets, n_taujets);
-    if (n_jets < 1) continue;
 
     if (debug) {
       cout << "Event " << entry << ", Electrons: " << branchElectron->GetEntriesFast() \
