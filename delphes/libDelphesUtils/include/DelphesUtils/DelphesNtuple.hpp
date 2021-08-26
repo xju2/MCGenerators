@@ -35,15 +35,18 @@ class DelphesNtuple: public DelphesNtupleBase{
 
   // Tracks
   void BookTracks();
-  void FillTrack(Track* track);
+  void FillTrack(const Track* track, const TClonesArray* branchParticle=nullptr);
+  // return the parent and grand-parent PID of the track.
+  void FindTrackTruth(const Track* track, const TClonesArray* branchParticle,
+    Int_t& parent_PID, Int_t& grand_parent_PID);
   
   // Towers
   void BookTowers();
   void FillTower(Tower* tower);
 
   // Truth Taus
-  void BookTaus();
-  void FillTau(GenParticle* particle);
+  void BookTruthTaus();
+  void FillTruthTau(GenParticle* particle, const TClonesArray* branchParticle);
 
   protected:
   // Truth Jet variables
@@ -103,6 +106,11 @@ class DelphesNtuple: public DelphesNtupleBase{
   vector<float> br_trackPhi;
   vector<float> br_trackD0;
   vector<float> br_trackZ0;
+  vector<int> br_trackVertexIdx;
+
+  vector<int> br_trackParentPID;
+  vector<int> br_trackGrandParentPID;
+
   void ClearTracks();
 
   // Towers
@@ -125,6 +133,8 @@ class DelphesNtuple: public DelphesNtupleBase{
   vector<float> br_truthTauPhi;
   vector<float> br_truthTauE;
   vector<int>   br_truthTauCharge;
+  vector<int>   br_truthTauStatus;
+  vector<int>   br_truthTauParentPID;
   void ClearTruthTaus();
 };
 

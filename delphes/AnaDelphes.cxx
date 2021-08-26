@@ -7,6 +7,7 @@
 #include <TSystem.h>
 #include <unistd.h>
 #include <iostream>
+#include <algorithm>
 
 #include "DelphesUtils/DelphesNtuple.hpp"
 #include "DelphesUtils/GhostAssociation.hpp"
@@ -61,7 +62,7 @@ void AnalysisEvents(ExRootTreeReader* treeReader,
     vector<Track*> trackContainer;
     for(i = 0; i < branchTrack->GetEntriesFast(); ++i ) {
       track = (Track*) branchTrack->At(i);
-      ntuple->FillTrack(track);
+      ntuple->FillTrack(track, branchParticle);
       trackContainer.push_back(track);
     }
 
@@ -144,13 +145,36 @@ void AnalysisEvents(ExRootTreeReader* treeReader,
     }
 
     // loop over gen particles to find tau lepton
+    vector<int> used_tau_index;
     for(i = 0; i < branchParticle->GetEntriesFast(); ++i) {
       particle = (GenParticle*) branchParticle->At(i);
+      // if(std::find(used_tau_index.begin(), used_tau_index.end(), i) != used_tau_index.end()) continue;
       // status=23, outgoing particles from the hardest subprocess.
-      if(abs(particle->PID) == 15 && particle->Status == 23) {
-        ntuple->FillTau(particle);
+      if(abs(particle->PID) == 15) {
+        // Int_t pID = particle->PID;
+        // used_tau_index.push_back(i);
+        // // trace back the decay chain to find the one after hard process
+        Int_t m1 = particle->M1;
+        GenParticle* mother = (GenParticle*) branchParticle->At(m1);
+        Int_t parent_PID = mother->PID;
+        // while(parent_PID == pID) {
+        //   particle = mother;
+        //   used_tau_index.push_back(m1);
+        //   m1 = mother->M1;
+        //   mother = (GenParticle*) branchParticle->At(m1);
+        //   parent_PID = mother->PID;
+        // }
+        if(parent_PID == 23) {
+          // only taus from Z boson.
+          ntuple->FillTruthTau(particle, branchParticle);
+        }
+
         if(debug) printf("GenParticle %d %d %d\n",
                     particle->PID, particle->Status, particle->Charge);
+        // for(auto idx: used_tau_index){
+        //   cout << " " << idx;
+        // }
+        // cout << endl;
       }
     }
 
@@ -206,7 +230,7 @@ int main(int argc, char** argv)
   ntuple->BookRecoJets(withTowers);
   ntuple->BookTracks();
   ntuple->BookTowers();
-  ntuple->BookTaus();
+  ntuple->BookTruthTaus();
 
   ExRootTreeReader *treeReader = new ExRootTreeReader(chain);
 

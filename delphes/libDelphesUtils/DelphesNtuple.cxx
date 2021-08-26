@@ -2,9 +2,13 @@
 
 #include "classes/DelphesClasses.h"
 
+#include <TClonesArray.h>
+#include <iostream>
+
 
 DelphesNtuple::DelphesNtuple(std::string& filename):
-  DelphesNtupleBase(filename){
+  DelphesNtupleBase(filename)
+{
   useTruthJets = false;
   useRecoJets = false;
   useJetTowers = false;
@@ -185,7 +189,7 @@ void DelphesNtuple::ClearJetTower() {
 void DelphesNtuple::BookTracks() {
   useTracks = true;
   tree->Branch("nTracks", &br_nTracks, "nTracks/I");
-  tree->Branch("TracKPID",    &br_trackPID);
+  tree->Branch("TrackPID",    &br_trackPID);
   tree->Branch("TrackCharge", &br_trackCharge);
   tree->Branch("TrackEtaOuter", &br_trackEtaOut);
   tree->Branch("TrackPhiOuter", &br_trackPhiOut);
@@ -194,9 +198,12 @@ void DelphesNtuple::BookTracks() {
   tree->Branch("TrackPhi",    &br_trackPhi);
   tree->Branch("TrackD0",     &br_trackD0);
   tree->Branch("TrackZ0",     &br_trackZ0);
+  tree->Branch("TrackVertexIdx", &br_trackVertexIdx);
+  tree->Branch("TrackParentPID", &br_trackParentPID);
+  tree->Branch("TrackGrandParentPID", &br_trackGrandParentPID);
 }
 
-void DelphesNtuple::FillTrack(Track* track) {
+void DelphesNtuple::FillTrack(const Track* track, const TClonesArray* branchParticle) {
   if(!useTracks) BookTracks();
   br_trackPID.push_back(track->PID);
   br_trackCharge.push_back(track->Charge);
@@ -207,6 +214,14 @@ void DelphesNtuple::FillTrack(Track* track) {
   br_trackPhi.push_back(track->Phi);
   br_trackD0.push_back(track->D0);
   br_trackZ0.push_back(track->DZ);
+  br_trackVertexIdx.push_back(track->VertexIndex);
+  
+  Int_t parent_PID=-1, grand_parent_PID=-1;
+  if(branchParticle != nullptr) {
+    this->FindTrackTruth(track, branchParticle, parent_PID, grand_parent_PID);
+  }
+  br_trackParentPID.push_back(parent_PID);
+  br_trackGrandParentPID.push_back(grand_parent_PID);
 }
 
 void DelphesNtuple::ClearTracks() {
@@ -220,6 +235,33 @@ void DelphesNtuple::ClearTracks() {
   br_trackPhi.clear();
   br_trackD0.clear();
   br_trackZ0.clear();
+  br_trackVertexIdx.clear();
+  br_trackParentPID.clear();
+  br_trackGrandParentPID.clear();
+}
+
+void DelphesNtuple::FindTrackTruth(
+  const Track* track, const TClonesArray* branchParticle,
+  Int_t& parent_PID, Int_t& grand_parent_PID
+){
+  parent_PID=-1, grand_parent_PID=-1;
+  auto gen_par = (GenParticle*) track->Particle.GetObject();
+  Int_t m1 = gen_par->M1;
+  GenParticle* mother = (GenParticle*) branchParticle->At(m1);
+  
+  if (mother != nullptr) {
+    parent_PID = mother->PID;
+    // loop over parents until finding a different PID
+    // this skips the intermediate status the same particle
+    while(mother->M1 >= 0) {
+      mother = (GenParticle*) branchParticle->At(mother->M1);
+      if(mother != nullptr && mother->PID != parent_PID) {
+        grand_parent_PID = mother->PID;
+        break;
+      }
+    }
+  }
+  // cout << track->PID << " comes from " << parent_PID << " " << grand_parent_PID << endl;
 }
 
 void DelphesNtuple::BookTowers() {
@@ -252,7 +294,7 @@ void DelphesNtuple::ClearTowers() {
   br_towerEhad.clear();
 }
 
-void DelphesNtuple::BookTaus() {
+void DelphesNtuple::BookTruthTaus() {
   useTruthTaus = true;
   tree->Branch("truthTauN", &br_nTruthTaus, "truthTauN/I");
   tree->Branch("truthTauEt",   &br_truthTauEt);
@@ -260,15 +302,24 @@ void DelphesNtuple::BookTaus() {
   tree->Branch("truthTauPhi",  &br_truthTauPhi);
   tree->Branch("truthTauE",    &br_truthTauE);
   tree->Branch("truthTauCharge",    &br_truthTauCharge);
+  tree->Branch("truthTauStatus",    &br_truthTauStatus);
+  tree->Branch("truthTauParentPID", &br_truthTauParentPID);
 }
 
-void DelphesNtuple::FillTau(GenParticle* particle) {
-  if(!useTruthTaus) BookTaus();
+void DelphesNtuple::FillTruthTau(GenParticle* particle, const TClonesArray* branchParticle) 
+{
+  if(!useTruthTaus) this->BookTruthTaus();
   br_truthTauEt.push_back(particle->PT);
   br_truthTauEta.push_back(particle->Eta);
   br_truthTauPhi.push_back(particle->Phi);
   br_truthTauE.push_back(particle->E);
   br_truthTauCharge.push_back(particle->Charge);
+  br_truthTauStatus.push_back(particle->Status);
+  // Find parent
+  Int_t m1 = particle->M1;
+  GenParticle* mother = (GenParticle*) branchParticle->At(m1);
+  Int_t parent_PID = mother->PID;
+  br_truthTauParentPID.push_back(parent_PID);
 }
 
 void DelphesNtuple::ClearTruthTaus() {
@@ -277,6 +328,8 @@ void DelphesNtuple::ClearTruthTaus() {
   br_truthTauPhi.clear();
   br_truthTauE.clear();  
   br_truthTauCharge.clear();
+  br_truthTauStatus.clear();
+  br_truthTauParentPID.clear();
 }
 
 void DelphesNtuple::Clear(){
@@ -297,5 +350,3 @@ void DelphesNtuple::Fill() {
     tree->Fill();
   }
 }
-
-
