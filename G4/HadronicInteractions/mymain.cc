@@ -48,6 +48,7 @@
 #include <fstream>
 #include <unistd.h>
 #include <string>
+#include <math>
 
 int main( int argc, char** argv) {
   
@@ -196,6 +197,7 @@ int main( int argc, char** argv) {
 
   // output name
   std::ofstream outfile(outname.c_str(), std::ofstream::out);
+  const G4double PionMass = 139.570 ; // MeV
   for ( G4int i = 0; i < numCollisions; ++i ) {
     // Draw some random numbers to select the hadron-nucleus interaction:
     // projectile hadron, projectile kinetic energy, projectile direction, and target material.
@@ -206,15 +208,15 @@ int main( int argc, char** argv) {
     rnd5 = CLHEP::HepRandom::getTheEngine()->flat();
     rnd6 = CLHEP::HepRandom::getTheEngine()->flat();
     // Sample the projectile kinetic energy
-    projectileEnergy = minEnergy + rnd1*( maxEnergy - minEnergy );
-    // projectileEnergy = 25.0*CLHEP::GeV;
+    // projectileEnergy = minEnergy + rnd1*( maxEnergy - minEnergy );
+    projectileEnergy = 30.0*CLHEP::GeV;
 
     if ( projectileEnergy <= 0.0 ) projectileEnergy = minEnergy; 
     // Sample the projectile direction
     normalization = 1.0/std::sqrt( rnd2*rnd2 + rnd3*rnd3 + rnd4*rnd4);
 
-    G4ThreeVector aDirection = G4ThreeVector( normalization*rnd2, normalization*rnd3, normalization*rnd4 );
-    // G4ThreeVector aDirection = G4ThreeVector(0.6, 0.6, 0.5291502622129182);
+    // G4ThreeVector aDirection = G4ThreeVector( normalization*rnd2, normalization*rnd3, normalization*rnd4 );
+    G4ThreeVector aDirection = G4ThreeVector(0.6, 0.6, 0.5291502622129182);
 
     // Sample the projectile hadron from the vector vecProjectiles
     G4int index_projectile = std::trunc( rnd5*numProjectiles );
@@ -232,6 +234,12 @@ int main( int argc, char** argv) {
     aChange = theHadronicGenerator->GenerateInteraction( nameProjectile, projectileEnergy, aDirection, material );
     //***********************************************************************************************************
     G4int nsec = aChange ? aChange->GetNumberOfSecondaries() : 0;
+
+    // G4double pion_p2 = projectileEnergy*projectileEnergy - PionMass*PionMass;
+    // G4double pion_px = sqrt(pion_p2*aDirection.x());
+    // G4double pion_py = sqrt(pion_p2*aDirection.y());
+    // G4double pion_pz = sqrt(pion_p2*aDirection.z());
+
     if (verbose) G4cout << "\t #" << i << "\t Nsec=" << nsec << "\t" << projectileEnergy <<  aDirection <<  G4endl;
     outfile << "-211 " << aDirection.x() <<  " " << aDirection.y() << " " << aDirection.z() << " " << projectileEnergy;
     // Loop over produced secondaries and print out some information:
