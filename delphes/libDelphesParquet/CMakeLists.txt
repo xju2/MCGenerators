@@ -1,5 +1,6 @@
+find_package(ROOT 6.18 REQUIRED COMPONENTS Core Hist Tree TreePlayer)
 find_package(Delphes)
-find_package(parquet)
+# find_package(parquet)
 
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/include )
 
@@ -13,6 +14,8 @@ target_include_directories(DelphesParquet
 )
 target_link_libraries(DelphesParquet
     Delphes
+    ROOT::Core ROOT::Tree 
+    ROOT::TreePlayer ROOT::Physics
     parquet
 )
 

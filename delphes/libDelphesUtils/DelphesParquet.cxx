@@ -46,11 +46,17 @@ DelphesParquet::DelphesParquet(std::string& filename) {
 
     // Write the Int32 column
     parquet::Int32Writer* int32_writer =
-        static_cast<parquet::Int32Writer*>(rg_writer->NextColumn());
+      static_cast<parquet::Int32Writer*>(rg_writer->NextColumn());
+    std::vector<int32_t> data_int;
     for (int i = 0; i < NUM_ROWS_PER_ROW_GROUP; i++) {
       int32_t value = i;
-      int32_writer->WriteBatch(1, nullptr, nullptr, &value);
+      data_int.push_back(value);
     }
+    int32_writer->WriteBatch(NUM_ROWS_PER_ROW_GROUP, nullptr, nullptr, &data_int[0]);
+    // for (int i = 0; i < NUM_ROWS_PER_ROW_GROUP; i++) {
+    //   int32_t value = i;
+    //   int32_writer->WriteBatch(1, nullptr, nullptr, &value);
+    // }
 
     // Write the Float column
     parquet::FloatWriter* float_writer =
