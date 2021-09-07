@@ -1,4 +1,4 @@
-#include "DelphesUtils/DelphesParquet.hpp"
+#include "DelphesParquet/DelphesParquet.hpp"
 
 #include <vector>
 #include <cassert>
@@ -36,35 +36,48 @@ DelphesParquet::DelphesParquet(std::string& filename) {
     parquet::RowGroupWriter* rg_writer = file_writer->AppendRowGroup();
     cout << "RowGroup created" << endl;
 
-    // Write the Bool column
-    parquet::BoolWriter* bool_writer =
-        static_cast<parquet::BoolWriter*>(rg_writer->NextColumn());
-    for (int i = 0; i < NUM_ROWS_PER_ROW_GROUP; i++) {
-      bool value = ((i % 2) == 0) ? true : false;
-      bool_writer->WriteBatch(1, nullptr, nullptr, &value);
-    }
+    // // Write the Bool column
+    // parquet::BoolWriter* bool_writer =
+    //     static_cast<parquet::BoolWriter*>(rg_writer->NextColumn());
+    // for (int i = 0; i < NUM_ROWS_PER_ROW_GROUP; i++) {
+    //   bool value = ((i % 2) == 0) ? true : false;
+    //   bool_writer->WriteBatch(1, nullptr, nullptr, &value);
+    // }
 
-    // Write the Int32 column
-    parquet::Int32Writer* int32_writer =
-      static_cast<parquet::Int32Writer*>(rg_writer->NextColumn());
-    std::vector<int32_t> data_int;
-    for (int i = 0; i < NUM_ROWS_PER_ROW_GROUP; i++) {
-      int32_t value = i;
-      data_int.push_back(value);
-    }
-    int32_writer->WriteBatch(NUM_ROWS_PER_ROW_GROUP, nullptr, nullptr, &data_int[0]);
+    // // Write the Int32 column
+    // parquet::Int32Writer* int32_writer =
+    //   static_cast<parquet::Int32Writer*>(rg_writer->NextColumn());
+    // std::vector<int32_t> data_int;
     // for (int i = 0; i < NUM_ROWS_PER_ROW_GROUP; i++) {
     //   int32_t value = i;
-    //   int32_writer->WriteBatch(1, nullptr, nullptr, &value);
+    //   data_int.push_back(value);
     // }
+    // int32_writer->WriteBatch(NUM_ROWS_PER_ROW_GROUP, nullptr, nullptr, &data_int[0]);
 
     // Write the Float column
     parquet::FloatWriter* float_writer =
         static_cast<parquet::FloatWriter*>(rg_writer->NextColumn());
-    for (int i = 0; i < NUM_ROWS_PER_ROW_GROUP; i++) {
-      float value = static_cast<float>(i) * 1.1f;
-      float_writer->WriteBatch(1, nullptr, nullptr, &value);
+    std::vector<float> data_float;
+    std::vector<int16_t> data_def;
+    std::vector<int16_t> data_rep;
+    // int16_t definition_level = 1;
+    // int16_t repetition_level = 0;
+    for (int i = 0; i < 2* NUM_ROWS_PER_ROW_GROUP; i++) {
+      float value = static_cast<float>(i) * 1.0f;
+
+      int16_t definition_level = 1;
+      int16_t repetition_level = 0; // start of a new record
+      if (((i+1) % 4) == 0 || ((i+1) % 3) == 0) {
+        repetition_level = 1; // this will be attached to the existing record.
+      }
+
+      data_float.push_back(value);
+      data_def.push_back(definition_level);
+      data_rep.push_back(repetition_level);
+
+      // float_writer->WriteBatch(1, &definition_level, &repetition_level, &value);
     }
+    float_writer->WriteBatch(NUM_ROWS_PER_ROW_GROUP, &data_def[0], &data_rep[0], &data_float[0]);
 
     // Close the ParquetFileWriter
     file_writer->Close();

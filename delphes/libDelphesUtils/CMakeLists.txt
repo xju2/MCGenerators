@@ -1,6 +1,6 @@
 find_package(ROOT 6.18 REQUIRED COMPONENTS Core Hist Tree TreePlayer)
 find_package(Delphes)
-find_package(fastjet)
+# find_package(fastjet)
 
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/include )
 
@@ -16,7 +16,6 @@ target_link_libraries(DelphesUtils
     Delphes
     ROOT::Core ROOT::Tree 
     ROOT::TreePlayer ROOT::Physics
-    parquet
 )
 
 install(TARGETS DelphesUtils 

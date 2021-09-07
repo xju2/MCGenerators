@@ -19,17 +19,17 @@ using parquet::schema::PrimitiveNode;
 
 static std::shared_ptr<GroupNode> SetupSchema() {
   parquet::schema::NodeVector fields;
-  // Create a primitive node named 'boolean_field' with type:BOOLEAN,
-  // repetition:REQUIRED
-  fields.push_back(PrimitiveNode::Make(
-    "boolean_field", Repetition::REQUIRED, Type::BOOLEAN, ConvertedType::NONE));
+  // // Create a primitive node named 'boolean_field' with type:BOOLEAN,
+  // // repetition:REQUIRED
+  // fields.push_back(PrimitiveNode::Make(
+  //   "boolean_field", Repetition::REQUIRED, Type::BOOLEAN, ConvertedType::NONE));
 
-  // Create a primitive node named 'int32_field' with type:INT32, repetition:REQUIRED,
-  fields.push_back(PrimitiveNode::Make(
-    "int32_field", Repetition::REQUIRED, Type::INT32, ConvertedType::NONE));
+  // // Create a primitive node named 'int32_field' with type:INT32, repetition:REQUIRED,
+  // fields.push_back(PrimitiveNode::Make(
+  //   "int32_field", Repetition::REQUIRED, Type::INT32, ConvertedType::NONE));
 
   fields.push_back(PrimitiveNode::Make(
-    "float_field", Repetition::REQUIRED, Type::FLOAT, ConvertedType::NONE));
+    "float_field", Repetition::REPEATED, Type::FLOAT, ConvertedType::NONE));
 
   // Create a GroupNode named 'schema' using the primitive nodes defined above
   // This GroupNode is the root node of the schema tree

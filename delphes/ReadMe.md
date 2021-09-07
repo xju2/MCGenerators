@@ -5,3 +5,5 @@ therefore, the `cmake` command looks like:
 ```bash
 cmake .. -DDelphes_DIR=/path/to/delphes
 ```
+
+Parquet file format, [https://arrow.apache.org/docs/cpp/parquet.html](https://arrow.apache.org/docs/cpp/parquet.html).
