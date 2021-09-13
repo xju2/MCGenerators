@@ -24,7 +24,7 @@ class DelphesNtuple: public DelphesNtupleBase{
   void FillGenJetsCnt(int njets, int nbjets, int ntaujets);
 
   // Reco Jets
-  void BookRecoJets(bool withTowers=false);
+  void BookRecoJets(bool withTowers=false, bool withTauIDVars=false);
   void FillRecoJet(Jet* jet);  // Reco Jets
   void FillRecoJetCnt(int njets, int nbjets, int ntaujets);
   void FillRecoJetGhostTracks(vector<int>& trackIdx);
@@ -49,6 +49,7 @@ class DelphesNtuple: public DelphesNtupleBase{
   void FillTruthTau(GenParticle* particle, const TClonesArray* branchParticle);
 
   protected:
+
   // Truth Jet variables
   bool useTruthJets;
   int br_nTruthJets;
@@ -62,7 +63,9 @@ class DelphesNtuple: public DelphesNtupleBase{
   vector<int> br_truthJetIsTautagged;
   void ClearGenJets();
 
+  // ====================
   // Reco Jet variables
+  // ====================
   bool useRecoJets;
   int br_nRecoJets;
   int br_nRecoBJets;
@@ -87,6 +90,13 @@ class DelphesNtuple: public DelphesNtupleBase{
   vector<float> br_jetTowerEem;
   vector<float> br_jetTowerEhad;
   void ClearJetTower();
+
+  // high-level variables associated with reco. jets
+  // those are taken from the ATLAS paper
+  // https://arxiv.org/pdf/1412.7086.pdf
+  bool useJetTauIDVars;
+  vector<float> br_jetFracCentralE;
+  
 
   // Tracks associated with Jets with ghost matching
   bool useJetGhostTracks;

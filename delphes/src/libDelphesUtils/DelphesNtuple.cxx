@@ -61,7 +61,7 @@ void DelphesNtuple::ClearGenJets() {
   br_truthJetIsTautagged.clear();
 }
 
-void DelphesNtuple::BookRecoJets(bool withTowers) {
+void DelphesNtuple::BookRecoJets(bool withTowers, bool withTauIDVars) {
   useRecoJets = true;
   tree->Branch("nJets", &br_nRecoJets, "nJets/I");
   tree->Branch("nBJets", &br_nRecoBJets, "nBJets/I");
@@ -76,10 +76,25 @@ void DelphesNtuple::BookRecoJets(bool withTowers) {
   tree->Branch("JetTrackN", &br_recoJetNTracks);
 
   if(withTowers) BookJetTowers();
+  if(withTauIDVars) BookJetTauIDVars();
+}
+
+void DelphesNtuple::BookJetTowers() {
+  useJetTowers = true;
+  tree->Branch("JetTowerEt",   &br_jetTowerEt);
+  tree->Branch("JetTowerEta",  &br_jetTowerEta);
+  tree->Branch("JetTowerPhi",  &br_jetTowerPhi);
+  tree->Branch("JetTowerE",    &br_jetTowerE);
+  tree->Branch("JetTowerEem",  &br_jetTowerEem);
+  tree->Branch("JetTowerEhad", &br_jetTowerEhad);
+}
+
+void DelphesNtuple::BookJetTauIDVars() {
+  useJetTauIDVars = true;
 }
 
 void DelphesNtuple::FillRecoJet(Jet* jet) {
-  if(!useRecoJets) BookRecoJets();
+
   br_recoJetPt.push_back(jet->PT);
   br_recoJetEta.push_back(jet->Eta);
   br_recoJetPhi.push_back(jet->Phi);
@@ -156,15 +171,6 @@ void DelphesNtuple::ClearRecoJets() {
   br_recoJetNTracks.clear();
 }
 
-void DelphesNtuple::BookJetTowers() {
-  useJetTowers = true;
-  tree->Branch("JetTowerEt",   &br_jetTowerEt);
-  tree->Branch("JetTowerEta",  &br_jetTowerEta);
-  tree->Branch("JetTowerPhi",  &br_jetTowerPhi);
-  tree->Branch("JetTowerE",    &br_jetTowerE);
-  tree->Branch("JetTowerEem",  &br_jetTowerEem);
-  tree->Branch("JetTowerEhad", &br_jetTowerEhad);
-}
 
 void DelphesNtuple::FillJetTower(Tower* tower) {
   if(!useJetTowers) BookJetTowers();
