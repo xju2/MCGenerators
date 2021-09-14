@@ -3,6 +3,7 @@
 
 #include "DelphesNtupleBase.hpp"
 #include <vector>
+#include <math.h>
 
 class Jet;
 class Track;
@@ -25,9 +26,14 @@ class DelphesNtuple: public DelphesNtupleBase{
 
   // Reco Jets
   void BookRecoJets(bool withTowers=false, bool withTauIDVars=false);
+  void BookJetTauIDVars();
   void FillRecoJet(Jet* jet);  // Reco Jets
   void FillRecoJetCnt(int njets, int nbjets, int ntaujets);
   void FillRecoJetGhostTracks(vector<int>& trackIdx);
+  void FillJetTauIDVars(
+    Jet* jet, vector<int>& trackIdx,
+    const TClonesArray* branchTrack
+  );
 
   // Towers associated with Reco jets
   void BookJetTowers();
@@ -48,7 +54,16 @@ class DelphesNtuple: public DelphesNtupleBase{
   void BookTruthTaus();
   void FillTruthTau(GenParticle* particle, const TClonesArray* branchParticle);
 
-  protected:
+  // Distance
+  float deltaR(float eta1, float phi1, float eta2, float phi2) {
+    double dphi = phi2 - phi1;
+    if (dphi > M_PI) dphi -= 2*M_PI;
+    if (dphi < -M_PI) dphi += 2*M_PI;
+    double deta = eta2 - eta1;
+    return (float) sqrt(deta*deta + dphi*dphi);
+  }
+
+protected:
 
   // Truth Jet variables
   bool useTruthJets;
@@ -95,7 +110,14 @@ class DelphesNtuple: public DelphesNtupleBase{
   // those are taken from the ATLAS paper
   // https://arxiv.org/pdf/1412.7086.pdf
   bool useJetTauIDVars;
-  vector<float> br_jetFracCentralE;
+  vector<float>   br_jetCentralEFrac;
+  vector<float>   br_jetLeadingTrackFracP;
+  vector<float>   br_jetTrackR;
+  vector<float>   br_jetLeadingTrackD0Sig;
+  vector<int>     br_jetNumISOTracks;
+  vector<float>   br_jetMaxDRInCore;
+  vector<float>   br_jetTrackMass;
+  void ClearJetTauIDVars();
   
 
   // Tracks associated with Jets with ghost matching

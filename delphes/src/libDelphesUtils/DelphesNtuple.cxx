@@ -3,6 +3,8 @@
 #include "classes/DelphesClasses.h"
 
 #include <TClonesArray.h>
+// #include <Math/GenVector/PtEtaPhiM4D.h> // ROOT::Math::PtEtaPhiMVector
+#include <TLorentzVector.h>
 #include <iostream>
 
 
@@ -91,7 +93,21 @@ void DelphesNtuple::BookJetTowers() {
 
 void DelphesNtuple::BookJetTauIDVars() {
   useJetTauIDVars = true;
+  tree->Branch("JetCentralEFrac", &br_jetCentralEFrac);
+  tree->Branch("JetLeadingTrackFracP", &br_jetLeadingTrackFracP);
+  tree->Branch("JetTrackR", &br_jetTrackR);
+  tree->Branch("JetLeadingTrackD0Sig", &br_jetLeadingTrackD0Sig);
+  tree->Branch("JetNumISOTracks", &br_jetNumISOTracks);
+  tree->Branch("JetMaxDRInCore", &br_jetMaxDRInCore);
+  tree->Branch("JetTrackMass", &br_jetTrackMass);
 }
+
+void DelphesNtuple::BookGhostTracks() {
+  useJetGhostTracks = true;
+  tree->Branch("JetGhostTrackN", &br_recoJetGhostTracksN);
+  tree->Branch("JetGhostTrackIdx", &br_jetGhostTrackIdx);
+}
+
 
 void DelphesNtuple::FillRecoJet(Jet* jet) {
 
@@ -130,20 +146,9 @@ void DelphesNtuple::FillRecoJetCnt(int njets, int nbjets, int ntaujets){
   br_nRecoTauJets = ntaujets;
 }
 
-void DelphesNtuple::BookGhostTracks() {
-  useJetGhostTracks = true;
-  tree->Branch("JetGhostTrackN", &br_recoJetGhostTracksN);
-  tree->Branch("JetGhostTrackIdx", &br_jetGhostTrackIdx);
-}
 
-void DelphesNtuple::ClearGhostTracks() {
-  br_recoJetGhostTracksN.clear();
-  br_jetGhostTrackIdx.clear();
-}
-
-void DelphesNtuple::FillRecoJetGhostTracks(vector<int>& trackIdx){
-  if(!useJetGhostTracks) BookGhostTracks();
-
+void DelphesNtuple::FillRecoJetGhostTracks(vector<int>& trackIdx)
+{
   if (trackIdx.size() < 1) {
     br_recoJetGhostTracksN.push_back(0);
     return;
@@ -158,9 +163,124 @@ void DelphesNtuple::FillRecoJetGhostTracks(vector<int>& trackIdx){
   br_recoJetGhostTracksN.push_back(cnt);
 }
 
+void DelphesNtuple::FillJetTower(Tower* tower) {
+  br_jetTowerEt.push_back(tower->ET);
+  br_jetTowerEta.push_back(tower->Eta);
+  br_jetTowerPhi.push_back(tower->Phi);
+  br_jetTowerE.push_back(tower->E);
+  br_jetTowerEem.push_back(tower->Eem);
+  br_jetTowerEhad.push_back(tower->Ehad);  
+}
+
+void DelphesNtuple::FillJetTauIDVars(
+  Jet* jet, vector<int>& trackIdx,
+  const TClonesArray* branchTracks
+){
+  // high-level variables associated with reco. jets
+  // those are taken from the ATLAS paper
+  // https://arxiv.org/pdf/1412.7086.pdf
+
+  // Central region: dR < 0.1
+  // Core region: dR < 0.2
+  // Isolated region: 0.2 < dR < 0.4
+
+
+  // Central energy fraction:
+  // fraction of transverse energy deposited in the region dR < 0.1
+  // w.r.t all energy deposited in the region dR < 0.2 around
+  // the *jet* calculated by summing the *pT* of constituents.
+  float central_energy_frac = 0.;
+
+  // Leading track momentum fraction:
+  // the pT of the highest-pT charged particle in the core region of jet
+  // divided by the ET sum deposited in all cells in the core region
+  float leading_track_frac = 0.;
+
+  // Track Radius:
+  // pT-weighted distance of associated tracks to the jet,
+  // using all tracks in the core and isolation regions
+  // I used ghost-association method to match tracks to jets
+  float track_radius = 0;
+
+  // Leading track IP significance:
+  // transverse impact parameter of the highest-pT track in the core region,
+  // divided by its estimated uncertainty
+  float leading_track_d0_sig = 0.;
+
+  // number of tracks associated with the jet in the region
+  // 0.2 < dr < 0.4
+  int num_isolated_tracks = 0;
+
+  // Maximum dR: 
+  // maximum dR between a track associated with the jet and the jet direction.
+  // only tracks in core region are considered.
+  float max_dr_core_tracks = 0;
+
+  // Track Mass:
+  // Invariant mass calculated from the sum of the four-momentum of all tracks
+  // in the core and isolation regions, assuming a pion mass for each track.
+  float track_mass = 0;
+
+  central_energy_frac = jet->FracPt[0] / (jet->FracPt[0] + jet->FracPt[1]);
+
+
+  if (trackIdx.size() > 0){
+    float leading_track_pT = -9999;
+    float sum_pT_weighted_dr = 0;
+    float sum_pT = 0;
+    TLorentzVector invTrackMass;
+    float pion_mass = 0.13957; // GeV
+
+    for (auto idx: trackIdx) {
+      Track* track = (Track*) branchTracks->At(idx);
+
+      sum_pT += track->PT;
+      sum_pT_weighted_dr += track->PT * deltaR(
+        track->Eta, track->Phi, jet->Eta, jet->Phi);
+
+      float dr = deltaR(track->Eta, track->Phi, jet->Eta, jet->Phi);
+
+      TLorentzVector track4D;
+      track4D.SetPtEtaPhiM(track->PT, track->Eta, track->Phi, pion_mass);
+      invTrackMass += track4D;
+
+      if (dr < 0.2){
+        if(track->PT > leading_track_pT) {
+          leading_track_pT = track->PT;
+          leading_track_d0_sig = track->D0 / track->ErrorD0;
+        }
+        if(dr > max_dr_core_tracks) max_dr_core_tracks = dr;
+      } else if (dr < 0.4) { // i.e. 0.2 < dr < 0.4
+        num_isolated_tracks ++;
+      }
+    }
+    track_mass = invTrackMass.M();
+    if(sum_pT > 0)
+      track_radius = sum_pT_weighted_dr / sum_pT;
+
+    if(leading_track_pT > 0) {
+      float sum_ET = 0;
+      for(Int_t j = 0; j < jet->Constituents.GetEntriesFast(); ++j) {
+        TObject* object = jet->Constituents.At(j);
+        if (object->IsA() == Tower::Class()) {
+          Tower* tower = (Tower*) object;
+          sum_ET += tower->ET;
+        }
+      }
+      if (sum_ET > 0) leading_track_frac = leading_track_pT / sum_ET;
+    }
+  }
+  
+  br_jetCentralEFrac.push_back(central_energy_frac);
+  br_jetLeadingTrackFracP.push_back(leading_track_frac);
+  br_jetTrackR.push_back(track_radius);
+  br_jetLeadingTrackD0Sig.push_back(leading_track_d0_sig);
+  br_jetNumISOTracks.push_back(num_isolated_tracks);
+  br_jetMaxDRInCore.push_back(max_dr_core_tracks);
+  br_jetTrackMass.push_back(track_mass);
+}
 
 void DelphesNtuple::ClearRecoJets() {
-  if(!useRecoJets) BookRecoJets();
   br_recoJetPt.clear();
   br_recoJetEta.clear();
   br_recoJetPhi.clear();
@@ -172,24 +292,28 @@ void DelphesNtuple::ClearRecoJets() {
 }
 
 
-void DelphesNtuple::FillJetTower(Tower* tower) {
-  if(!useJetTowers) BookJetTowers();
-  br_jetTowerEt.push_back(tower->ET);
-  br_jetTowerEta.push_back(tower->Eta);
-  br_jetTowerPhi.push_back(tower->Phi);
-  br_jetTowerE.push_back(tower->E);
-  br_jetTowerEem.push_back(tower->Eem);
-  br_jetTowerEhad.push_back(tower->Ehad);  
-}
-
 void DelphesNtuple::ClearJetTower() {
-  if(!useJetTowers) BookJetTowers();
   br_jetTowerEt.clear();
   br_jetTowerEta.clear();
   br_jetTowerPhi.clear();
   br_jetTowerE.clear();
   br_jetTowerEem.clear();
   br_jetTowerEhad.clear();  
+}
+
+void DelphesNtuple::ClearGhostTracks() {
+  br_recoJetGhostTracksN.clear();
+  br_jetGhostTrackIdx.clear();
+}
+
+void DelphesNtuple::ClearJetTauIDVars() {
+  br_jetCentralEFrac.clear();
+  br_jetLeadingTrackFracP.clear();
+  br_jetTrackR.clear();
+  br_jetLeadingTrackD0Sig.clear();
+  br_jetNumISOTracks.clear();
+  br_jetMaxDRInCore.clear();
+  br_jetTrackMass.clear();
 }
 
 void DelphesNtuple::BookTracks() {
@@ -346,6 +470,7 @@ void DelphesNtuple::Clear(){
   if(useTowers)     ClearTowers();
   if(useJetGhostTracks) ClearGhostTracks();
   if(useTruthTaus)  ClearTruthTaus();
+  if(useJetTauIDVars) ClearJetTauIDVars();
 }
 
 void DelphesNtuple::Fill() {

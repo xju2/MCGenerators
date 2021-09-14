@@ -84,6 +84,7 @@ void AnalysisEvents(ExRootTreeReader* treeReader,
       // see which tracks are matched to this jet
       vector<int> trackIdx = GhostAssociation::Associate(jet, trackContainer, jetConfig);
       ntuple->FillRecoJetGhostTracks(trackIdx);
+      ntuple->FillJetTauIDVars(jet, trackIdx, branchTrack);
     }
     ntuple->FillRecoJetCnt(n_jets, n_bjets, n_taujets);
 
@@ -226,7 +227,8 @@ int main(int argc, char** argv)
   auto ntuple = new DelphesNtuple(outname);
   ntuple->BookGenJets();
   bool withTowers = true;
-  ntuple->BookRecoJets(withTowers);
+  bool withTauIDVars = true;
+  ntuple->BookRecoJets(withTowers, withTauIDVars);
   ntuple->BookTracks();
   ntuple->BookTowers();
   ntuple->BookTruthTaus();

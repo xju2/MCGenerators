@@ -19,6 +19,8 @@ data_types = {
 }
 
 def add_branch(tname, bname, dname, dtype):
+    # define data
+    def_branch = "{:15} {};".format(dtype, dname)
     # booking a branch
     if "vector" in dtype:
         book_branch = '{}->Branch("{}", &{});'.format(
@@ -31,18 +33,21 @@ def add_branch(tname, bname, dname, dtype):
     if "vector" in dtype:
         clear_branch = "{}.clear();".format(dname)
 
-    return book_branch, clear_branch
+    return def_branch, book_branch, clear_branch
 
 def print_code(arrays):
-    bookings = [x[0] for x in arrays]
-    clearings = [x[1] for x in arrays if x[1]]
+    definitions = [x[0] for x in arrays]
+    bookings = [x[1] for x in arrays]
+    clearings = [x[2] for x in arrays if x[1]]
+    print("\n".join(definitions))
+    print("\n")
     print("\n".join(bookings))
     print()
     print("\n".join(clearings))
 
 def add_branches(tname, fname):
     with open(fname, 'r') as f:
-        in_vars = [x[:-1].replace(" ", '').split(',') for x in f]
+        in_vars = [x[:-1].replace(" ", '').split(',') for x in f if len(x.split(',')) > 2]
 
     results = [add_branch(tname, *x) for x in in_vars]
     print_code(results)

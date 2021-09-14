@@ -1,2 +1,7 @@
-JetE, br_recoJetE, vector<float>
-nJets, br_nRecoJets, int
+JetCentralEFrac, br_jetCentralEFrac, vector<float>
+JetLeadingTrackFracP, br_jetLeadingTrackFracP, vector<float>
+JetTrackR, br_jetTrackR, vector<float>
+JetLeadingTrackD0Sig, br_jetLeadingTrackD0Sig, vector<float>
+JetNumISOTracks, br_jetNumISOTracks, vector<int>
+JetMaxDRInCore, br_jetMaxDRInCore, vector<float>
+JetTrackMass, br_jetTrackMass, vector<float>
