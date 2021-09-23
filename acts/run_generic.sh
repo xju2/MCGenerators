@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ $# -lt 6 ]; then
+if [ $# -lt 7 ]; then
 	echo "Usage: $0 ACTION ACTS-BIN-DIR OUTPUT-DIR PY8-CMND NEVTS"
 	echo "ACTION:       ['gen', 'sim', 'digi', 'meas2sp']"
 	echo "ACTS-BIN-DIR: bin-directory created when compiling ACTS"
@@ -8,12 +8,15 @@ if [ $# -lt 6 ]; then
 	echo "PY8-CMD:      py8 commands in a text file"
 	echo "NEVTS:        number of events"
 	echo "NPU:          number of pileup <mu>"
+	echo "SEED:         generator seed"
 	exit
 fi
 
-#DIGICONF=default-smearing-config-generic.json
-#DIGICONF=default-input-config-generic.json
-DIGICONF=default-geometric-config-generic.json
+DIGICONF=default-smearing-config-generic.json
+#DIGICONF=default-geometric-config-generic.json
+
+#DIGICONF=default-input-config-generic.json ## do not use this
+
 if [ ! -f $DIGICONF ];then
 	echo "digitization configuration, itk-pixel-digitization.json, does not exist"
 	exit
@@ -25,6 +28,7 @@ OUTDIR=$3	  # output directory
 PY8CMD=$4
 NEVTS=$5
 NPU=$6
+SEED=$7
 
 SHIFTER="shifter --image=docexoty/heptools:ubuntu20.04"
 
