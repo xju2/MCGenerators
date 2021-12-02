@@ -79,6 +79,7 @@ void DelphesNtuple::BookRecoJets(bool withTowers, bool withTauIDVars) {
 
   if(withTowers) BookJetTowers();
   if(withTauIDVars) BookJetTauIDVars();
+  BookGhostTracks();
 }
 
 void DelphesNtuple::BookJetTowers() {
