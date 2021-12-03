@@ -97,6 +97,7 @@ void DelphesNtuple::BookJetTauIDVars() {
   tree->Branch("JetCentralEFrac", &br_jetCentralEFrac);
   tree->Branch("JetLeadingTrackFracP", &br_jetLeadingTrackFracP);
   tree->Branch("JetTrackR", &br_jetTrackR);
+  tree->Branch("JetLeadingTrackD0", &br_jetLeadingTrackD0);
   tree->Branch("JetLeadingTrackD0Sig", &br_jetLeadingTrackD0Sig);
   tree->Branch("JetNumISOTracks", &br_jetNumISOTracks);
   tree->Branch("JetMaxDRInCore", &br_jetMaxDRInCore);
@@ -184,7 +185,11 @@ void DelphesNtuple::FillJetTauIDVars(
   // Central region: dR < 0.1
   // Core region: dR < 0.2
   // Isolated region: 0.2 < dR < 0.4
+  const float centralRadius = 0.1;
+  const float coreRadius = 0.2;
+  const float isolatedRadius = 0.4;
 
+  const float pionMass = 0.13957; // GeV
 
   // Central energy fraction:
   // fraction of transverse energy deposited in the region dR < 0.1
@@ -207,6 +212,7 @@ void DelphesNtuple::FillJetTauIDVars(
   // transverse impact parameter of the highest-pT track in the core region,
   // divided by its estimated uncertainty
   float leading_track_d0_sig = 0.;
+  float leading_track_d0 = 0.0;
 
   // number of tracks associated with the jet in the region
   // 0.2 < dr < 0.4
@@ -222,7 +228,21 @@ void DelphesNtuple::FillJetTauIDVars(
   // in the core and isolation regions, assuming a pion mass for each track.
   float track_mass = 0;
 
-  central_energy_frac = jet->FracPt[0] / (jet->FracPt[0] + jet->FracPt[1]);
+  // loop over all towers
+  float energyCentral = 0;
+  float energyCore = 0;
+  for (Int_t j = 0; j < jet->Constituents.GetEntriesFast(); ++j) {
+    TObject* object = jet->Constituents.At(j);
+    if (object->IsA() == Tower::Class()) {
+      Tower* tower = (Tower*) object;
+
+      float dR = deltaR(tower->Eta, tower->Phi, jet->Eta, jet->Phi);
+      if (dR < centralRadius) energyCentral += tower->ET;
+      if (dR < coreRadius) energyCore += tower->ET;
+    }    
+  }
+  if (fabs(energyCore) < 1e-6) central_energy_frac = 99999;
+  else central_energy_frac = energyCentral / energyCore;
 
 
   if (trackIdx.size() > 0){
@@ -230,7 +250,6 @@ void DelphesNtuple::FillJetTauIDVars(
     float sum_pT_weighted_dr = 0;
     float sum_pT = 0;
     TLorentzVector invTrackMass;
-    float pion_mass = 0.13957; // GeV
 
     for (auto idx: trackIdx) {
       Track* track = (Track*) branchTracks->At(idx);
@@ -242,16 +261,17 @@ void DelphesNtuple::FillJetTauIDVars(
       float dr = deltaR(track->Eta, track->Phi, jet->Eta, jet->Phi);
 
       TLorentzVector track4D;
-      track4D.SetPtEtaPhiM(track->PT, track->Eta, track->Phi, pion_mass);
+      track4D.SetPtEtaPhiM(track->PT, track->Eta, track->Phi, pionMass);
       invTrackMass += track4D;
 
-      if (dr < 0.2){
+      if (dr < coreRadius){
         if(track->PT > leading_track_pT) {
           leading_track_pT = track->PT;
           leading_track_d0_sig = track->D0 / track->ErrorD0;
+          leading_track_d0 = track->D0;
         }
         if(dr > max_dr_core_tracks) max_dr_core_tracks = dr;
-      } else if (dr < 0.4) { // i.e. 0.2 < dr < 0.4
+      } else if (dr < isolatedRadius) { // i.e. 0.2 < dr < 0.4
         num_isolated_tracks ++;
       }
     }
@@ -275,6 +295,7 @@ void DelphesNtuple::FillJetTauIDVars(
   br_jetCentralEFrac.push_back(central_energy_frac);
   br_jetLeadingTrackFracP.push_back(leading_track_frac);
   br_jetTrackR.push_back(track_radius);
+  br_jetLeadingTrackD0.push_back(leading_track_d0);
   br_jetLeadingTrackD0Sig.push_back(leading_track_d0_sig);
   br_jetNumISOTracks.push_back(num_isolated_tracks);
   br_jetMaxDRInCore.push_back(max_dr_core_tracks);
@@ -311,6 +332,7 @@ void DelphesNtuple::ClearJetTauIDVars() {
   br_jetCentralEFrac.clear();
   br_jetLeadingTrackFracP.clear();
   br_jetTrackR.clear();
+  br_jetLeadingTrackD0.clear();
   br_jetLeadingTrackD0Sig.clear();
   br_jetNumISOTracks.clear();
   br_jetMaxDRInCore.clear();
