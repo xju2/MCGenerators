@@ -79,6 +79,7 @@ void DelphesNtuple::BookRecoJets(bool withTowers, bool withTauIDVars) {
 
   if(withTowers) BookJetTowers();
   if(withTauIDVars) BookJetTauIDVars();
+  BookGhostTracks();
 }
 
 void DelphesNtuple::BookJetTowers() {
@@ -376,7 +377,14 @@ void DelphesNtuple::FindTrackTruth(
 ){
   parent_PID=-1, grand_parent_PID=-1;
   auto gen_par = (GenParticle*) track->Particle.GetObject();
+  if (gen_par == nullptr) {
+    // this track is not associated with any parton-level particles
+    return ;
+  }
   Int_t m1 = gen_par->M1;
+  if (m1 < 0 || m1 >= branchParticle->GetSize()) {
+    return;
+  }
   GenParticle* mother = (GenParticle*) branchParticle->At(m1);
   
   if (mother != nullptr) {
@@ -385,7 +393,8 @@ void DelphesNtuple::FindTrackTruth(
     // this skips the intermediate status the same particle
     while(mother->M1 >= 0) {
       mother = (GenParticle*) branchParticle->At(mother->M1);
-      if(mother != nullptr && mother->PID != parent_PID) {
+      if (mother == nullptr) break;
+      if(mother->PID != parent_PID) {
         grand_parent_PID = mother->PID;
         break;
       }
