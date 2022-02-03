@@ -2,11 +2,11 @@ Beams:idA = 2212                   ! first beam, p = 2212
 Beams:idB = 2212                   ! second beam, p = 2212
 Beams:eCM = 13000.                 ! CM energy of collision
 
-Main:numberOfEvents = 10000
+Main:numberOfEvents = 1000000
 
-WeakDoubleBoson:ffbar2gmZgmZ = on		! ff -> ZZ
-25:onMode   = off               		! turn off all decay modes
-25:onIfAny  = 23                		! turn on ZZ decay mode
+HiggsSM:all = on                ! all Higgs productions
+25:onMode   = off               ! turn off all decay modes
+25:onIfAny  = 23                ! turn on ZZ decay mode
 23:onMode = off
 23:onIfAny = 11 11 				! turn on leptonic Z decay
 23:onIfAny = 13 13 				! turn on leptonic Z decay
