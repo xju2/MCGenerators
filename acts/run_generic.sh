@@ -12,8 +12,8 @@ if [ $# -lt 7 ]; then
 	exit
 fi
 
-DIGICONF=default-smearing-config-generic.json
-#DIGICONF=default-geometric-config-generic.json
+#DIGICONF=default-smearing-config-generic.json
+DIGICONF=default-geometric-config-generic.json
 
 #DIGICONF=default-input-config-generic.json ## do not use this
 
