@@ -2,13 +2,25 @@
 """
 import os
 
-def generate(njobs: int, py8cmnd: str, task_fname: str, shifter: bool):
+def generate(njobs: int, py8cmnd: str, task_fname: str, shifter: bool,
+    exclude_ana: bool, delphes_dir: str, delphes_card: str):
     # basedir = "/global/homes/x/xju/m3443/usr/xju/TauStudies/run_QCDPU"
     basedir = os.path.abspath(os.getcwd())
-    config_files = ['MinBias.pileup', 'delphes_card_ATLAS_PileUp.tcl', py8cmnd]
-    delphe = "DelphesPythia8 delphes_card_ATLAS_PileUp.tcl "+py8cmnd+" {outname}"
+    assert os.path.isdir(delphes_dir)
+    delphes_dir = os.path.abspath(delphes_dir)
+
+    minbias = "MinBias.pileup"
+    card = delphes_card
+
+    delphe = " ".join(["DelphesPythia8", card, py8cmnd, "{outname}"])
+
     ana_exe = "/global/cfs/cdirs/atlas/xju/software/MCGenerators/delphes/build_heptools/bin/AnaDelphes"
     analysis = f"{ana_exe}" + " -f {outname} -o processed_{outname}"
+
+    card = os.path.join(delphes_dir, 'cards', delphes_card)
+    minbias = os.path.join(delphes_dir, 'MinBias.pileup')
+    py8cmnd = os.path.join(basedir, py8cmnd)
+    config_files = [minbias, card, py8cmnd]
 
     # check the existance of input files
     config_files = [os.path.join(basedir, x) for x in config_files]
@@ -22,7 +34,10 @@ def generate(njobs: int, py8cmnd: str, task_fname: str, shifter: bool):
         analysis = "shifter " + analysis
 
     cmd_list = ["ln -s {}".format(x) for x in config_files]
-    cmd_list += [delphe, analysis]
+    if exclude_ana:
+        cmd_list += [delphe]
+    else:
+        cmd_list += [delphe, analysis]
 
     command = " && ".join(cmd_list)
 
@@ -45,5 +60,8 @@ if __name__ == '__main__':
     add_arg('task_fname', help='task output name')
     add_arg('--shifter', action='store_true', help='using shifter container')
     add_arg('-n', '--njobs', help='Number of jobs', default=100, type=int)
+    add_arg('-e', "--exclude-ana", action='store_true', help='exclude analysis')
+    add_arg('-c', '--delphes-card', default='delphes_card_ATLAS_PileUp.tcl', help='delphes card')
+    add_arg('-d', '--delphes-dir', default='/code/Delphes-3.5.0', help='delphes directory')
     args = parser.parse_args()
     generate(**vars(args))
