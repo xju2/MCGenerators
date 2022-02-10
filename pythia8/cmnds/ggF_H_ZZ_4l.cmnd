@@ -1,18 +1,19 @@
-Beams:idA = 2212                   ! first beam, p = 2212, pbar = -2212
-Beams:idB = 2212                   ! second beam, p = 2212, pbar = -2212
+Beams:idA = 2212                   ! first beam, p = 2212
+Beams:idB = 2212                   ! second beam, p = 2212
 Beams:eCM = 13000.                 ! CM energy of collision
 
-Random:setSeed = on                                                               
-Random:seed = 1234
-Main:numberOfEvents = 200 
+Main:numberOfEvents = 10000
 
-HardQCD:all = on		! all hard QCD 2->2 processes,
+HiggsSM:gg2H = on                ! gg->H Higgs productions
+25:onMode   = off               ! turn off all decay modes
+25:onIfAny  = 23                ! turn on ZZ decay mode
+23:onMode = off
+23:onIfAny = 11 11 				! turn on leptonic Z decay
+23:onIfAny = 13 13 				! turn on leptonic Z decay
 
-PhaseSpace:pTHatMin = 20.		! lower pT
 
 Tune:ee = 7                         ! use Monash 2013 Tune by Peter Skands
-
-PDF:pSet = 13             ! NNPDF2.3 QCD+QED LO alpha_s(M_Z) = 0.130. Will be used everywhere
+PDF:pSet = 13             ! NNPDF2.3 QCD+QED LO alpha_s(M_Z) = 0.130. Will be used everywhere 
 
 
 ColourReconnection:range = 1.71
