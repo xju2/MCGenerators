@@ -26,15 +26,13 @@ void AnalysisEvents(ExRootTreeReader* treeReader,
   TClonesArray *branchTrack = treeReader->UseBranch("Track");
   TClonesArray *branchTower = treeReader->UseBranch("Tower");
 
-  // TClonesArray *branchEFlowTrack = treeReader->UseBranch("EFlowTrack");
-  // TClonesArray *branchEFlowPhoton = treeReader->UseBranch("EFlowPhoton");
-  // TClonesArray *branchEFlowNeutralHadron = treeReader->UseBranch("EFlowNeutralHadron");
-
   TClonesArray *branchJet = treeReader->UseBranch("Jet");
   TClonesArray *branchGenJet = treeReader->UseBranch("GenJet");
 
   Long64_t allEntries = treeReader->GetEntries();
   printf("Total %lld entries\n", allEntries);
+
+  if (debug) allEntries = 10;
 
   Long64_t entry;
   Jet* jet;
@@ -85,6 +83,9 @@ void AnalysisEvents(ExRootTreeReader* treeReader,
       vector<int> trackIdx = GhostAssociation::Associate(jet, trackContainer, jetConfig);
       ntuple->FillRecoJetGhostTracks(trackIdx);
       ntuple->FillJetTauIDVars(jet, trackIdx, branchTrack);
+      
+      // printf("Energy fraction of jet %d: %.2f %.2f %.2f %.2f %.2f\n", i, jet->FracPt[0], jet->FracPt[1], jet->FracPt[2], 
+        // jet->FracPt[3], jet->FracPt[4]);
     }
     ntuple->FillRecoJetCnt(n_jets, n_bjets, n_taujets);
 
@@ -182,7 +183,7 @@ void AnalysisEvents(ExRootTreeReader* treeReader,
       jetContainer.size(), trackContainer.size(), towerContainer.size());
 
     ntuple->Fill();
-    if(debug) break;
+    // if(debug) break;
   }
 }
 

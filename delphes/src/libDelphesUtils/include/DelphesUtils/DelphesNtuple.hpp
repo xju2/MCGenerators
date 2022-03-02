@@ -113,6 +113,7 @@ protected:
   vector<float>   br_jetCentralEFrac;
   vector<float>   br_jetLeadingTrackFracP;
   vector<float>   br_jetTrackR;
+  vector<float>   br_jetLeadingTrackD0;
   vector<float>   br_jetLeadingTrackD0Sig;
   vector<int>     br_jetNumISOTracks;
   vector<float>   br_jetMaxDRInCore;
