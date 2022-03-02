@@ -48,7 +48,7 @@
 #include <fstream>
 #include <unistd.h>
 #include <string>
-#include <math>
+#include <math.h>
 
 int main( int argc, char** argv) {
   
