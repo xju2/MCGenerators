@@ -235,13 +235,17 @@ int main( int argc, char** argv) {
     //***********************************************************************************************************
     G4int nsec = aChange ? aChange->GetNumberOfSecondaries() : 0;
 
-    // G4double pion_p2 = projectileEnergy*projectileEnergy - PionMass*PionMass;
-    // G4double pion_px = sqrt(pion_p2*aDirection.x());
-    // G4double pion_py = sqrt(pion_p2*aDirection.y());
-    // G4double pion_pz = sqrt(pion_p2*aDirection.z());
+    G4double pion_p2 = sqrt(projectileEnergy*projectileEnergy - PionMass*PionMass);
+    G4double pion_px = pion_p2*aDirection.x();
+    G4double pion_py = pion_p2*aDirection.y();
+    G4double pion_pz = pion_p2*aDirection.z();
 
     if (verbose) G4cout << "\t #" << i << "\t Nsec=" << nsec << "\t" << projectileEnergy <<  aDirection <<  G4endl;
-    outfile << "-211 " << aDirection.x() <<  " " << aDirection.y() << " " << aDirection.z() << " " << projectileEnergy;
+
+    // outfile << "-211 " << aDirection.x() <<  " " << aDirection.y() << " " << aDirection.z() << " " << projectileEnergy;
+
+    outfile << "-211 " << projectileEnergy << " " << pion_px <<  " " << pion_py << " " << pion_pz;
+
     // Loop over produced secondaries and print out some information:
     // for each collision, the number of secondaries; every 100 collisions, the list of secondaries.
     for ( G4int j = 0; j < nsec; ++j ) {
@@ -251,8 +255,11 @@ int main( int argc, char** argv) {
           << "\t" << sec->GetDefinition()->GetPDGEncoding()
 				  << "\t p=" << sec->Get4Momentum() << " MeV" << G4endl;
       }
-      outfile << " " << sec->GetDefinition()->GetPDGEncoding() << " " << sec->Get4Momentum().px() 
-          << " " << sec->Get4Momentum().py() << " " << sec->Get4Momentum().pz() << " " << sec->Get4Momentum().e();
+
+      outfile << " " << sec->GetDefinition()->GetPDGEncoding() << " " << sec->Get4Momentum().e() << " " << sec->Get4Momentum().px() 
+          << " " << sec->Get4Momentum().py() << " " << sec->Get4Momentum().pz();
+
+
       delete aChange->GetSecondary(j);
     }
     outfile << "\n";
