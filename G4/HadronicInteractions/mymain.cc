@@ -39,6 +39,7 @@
 #include "G4NistManager.hh"
 #include "G4VParticleChange.hh"
 #include "G4UnitsTable.hh"
+#include "G4DynamicParticle.hh"
 #include "G4SystemOfUnits.hh"
 #include "HadronicGenerator.hh"
 #include "CLHEP/Random/Randomize.h" 
@@ -235,7 +236,7 @@ int main( int argc, char** argv) {
     //***********************************************************************************************************
     G4int nsec = aChange ? aChange->GetNumberOfSecondaries() : 0;
 
-    G4double pion_p2 = sqrt(projectileEnergy*projectileEnergy - PionMass*PionMass);
+    G4double pion_p2 = sqrt(projectileEnergy*projectileEnergy + 2*projectileEnergy*PionMass);
     G4double pion_px = pion_p2*aDirection.x();
     G4double pion_py = pion_p2*aDirection.y();
     G4double pion_pz = pion_p2*aDirection.z();
@@ -244,7 +245,7 @@ int main( int argc, char** argv) {
 
     // outfile << "-211 " << aDirection.x() <<  " " << aDirection.y() << " " << aDirection.z() << " " << projectileEnergy;
 
-    outfile << "-211 " << projectileEnergy << " " << pion_px <<  " " << pion_py << " " << pion_pz;
+    outfile << "-211 " << std::fixed << std::setprecision(5) << projectileEnergy + PionMass  << " " << pion_px << " " << pion_py << " " << pion_pz;
 
     // Loop over produced secondaries and print out some information:
     // for each collision, the number of secondaries; every 100 collisions, the list of secondaries.
