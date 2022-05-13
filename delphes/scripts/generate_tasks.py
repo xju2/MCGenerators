@@ -3,11 +3,8 @@
 import os
 
 def generate(njobs: int, py8cmnd: str, task_fname: str, shifter: bool,
-    exclude_ana: bool, delphes_dir: str, delphes_card: str):
-    # basedir = "/global/homes/x/xju/m3443/usr/xju/TauStudies/run_QCDPU"
+    exclude_ana: bool, minbias: str, delphes_card: str):
     basedir = os.path.abspath(os.getcwd())
-    assert os.path.isdir(delphes_dir)
-    delphes_dir = os.path.abspath(delphes_dir)
 
     minbias = "MinBias.pileup"
     card = delphes_card
@@ -17,8 +14,8 @@ def generate(njobs: int, py8cmnd: str, task_fname: str, shifter: bool,
     ana_exe = "/global/cfs/cdirs/atlas/xju/software/MCGenerators/delphes/build_heptools/bin/AnaDelphes"
     analysis = f"{ana_exe}" + " -f {outname} -o processed_{outname}"
 
-    card = os.path.join(delphes_dir, 'cards', delphes_card)
-    minbias = os.path.join(delphes_dir, 'MinBias.pileup')
+    card = os.path.abspath(delphes_card)
+    minbias = os.path.abspath(minbias)
     py8cmnd = os.path.join(basedir, py8cmnd)
     config_files = [minbias, card, py8cmnd]
 
@@ -58,10 +55,10 @@ if __name__ == '__main__':
     add_arg = parser.add_argument
     add_arg('py8cmnd', help='Py8 command lines')
     add_arg('task_fname', help='task output name')
+    add_arg("delphes_card", help="delphes card")
     add_arg('--shifter', action='store_true', help='using shifter container')
     add_arg('-n', '--njobs', help='Number of jobs', default=100, type=int)
     add_arg('-e', "--exclude-ana", action='store_true', help='exclude analysis')
-    add_arg('-c', '--delphes-card', default='delphes_card_ATLAS_PileUp.tcl', help='delphes card')
-    add_arg('-d', '--delphes-dir', default='/code/Delphes-3.5.0', help='delphes directory')
+    add_arg('-m', '--minbias', default='MinBias.pileup', help='MiniBias file')
     args = parser.parse_args()
     generate(**vars(args))

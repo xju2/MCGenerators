@@ -71,7 +71,7 @@ module PileUpMerger PileUpMerger {
   set PileUpFile MinBias.pileup
 
   # average expected pile up
-  set MeanPileUp 40
+  set MeanPileUp 200
 
    # maximum spread in the beam direction in m
   set ZVertexSpread 0.25
