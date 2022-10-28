@@ -61,7 +61,8 @@ int main( int argc, char** argv) {
   std::string outname("pion_minus_H.csv");
   bool verbose = false;
   bool help = false;
-  while ((opt = getopt(argc, argv, "n:o:v:t:b:h")) != -1) {
+  G4int seed = time( NULL ); // default seed
+  while ((opt = getopt(argc, argv, "n:o:vt:b:s:h")) != -1) {
     switch (opt) {
       case 'n':
         n_evts = atoi(optarg);
@@ -72,26 +73,30 @@ int main( int argc, char** argv) {
       case 'v':
         verbose = true;
         break;
-	  case 'b':
-		min_energy = atof(optarg);
-		break;
-	  case 't':
-		max_energy = atof(optarg);
-		break;
-	  case 'h':
-		help = true;
+	    case 'b':
+		    min_energy = atof(optarg);
+		    break;
+	    case 't':
+		    max_energy = atof(optarg);
+		    break;
+      case 's':
+        seed = atoi(optarg);
+        break;
+	    case 'h':
+		    help = true;
       default:
-		fprintf(stderr, "Usage: %s [-hv] [-n NUM_EVTS] [-o OUTNAME] [-b MIN_ENERGY] [-t MAX_ENERGY]\n",
+		  fprintf(stderr, "Usage: %s [-hv] [-n NUM_EVTS] [-o OUTNAME] [-b MIN_ENERGY] [-t MAX_ENERGY]\n",
 				              argv[0]);
-		if (help) {
-			printf("         -n NUM_EVTS: number of events to be generated. Default is 10\n");
-			printf("         -o OUTNAME:  output filename . Default is \"pion_minus_H.csv\"\n");
-			printf("         -b MIN_ENERGY:  minimum energy of incoming particle in GeV. Default is 15 \n");
-			printf("         -t MAX_ENERGY:  maximum energy of incoming particle in GeV. Default is 30 \n");
-			printf("         -v :  print debug info\n");
-			printf("         -h HELP:  print this info\n");
-		}
-		return 0;
+      if (help) {
+        printf("         -n NUM_EVTS: number of events to be generated. Default is 10\n");
+        printf("         -o OUTNAME:  output filename . Default is \"pion_minus_H.csv\"\n");
+        printf("         -b MIN_ENERGY:  minimum energy of incoming particle in GeV. Default is 15 \n");
+        printf("         -t MAX_ENERGY:  maximum energy of incoming particle in GeV. Default is 30 \n");
+        printf("         -s:  seed for random number generator. Default is time(NULL) \n");
+        printf("         -v :  print debug info\n");
+        printf("         -h HELP:  print this info\n");
+      }
+		  return 0;
     }
   }
   // See the HadronicGenerator class for the possibilities and meaning of the "physics cases".
@@ -175,7 +180,7 @@ int main( int argc, char** argv) {
   
   CLHEP::Ranlux64Engine defaultEngine( 1234567, 4 ); 
   CLHEP::HepRandom::setTheEngine( &defaultEngine ); 
-  G4int seed = time( NULL ); 
+  
   CLHEP::HepRandom::setTheSeed( seed ); 
   G4cout << G4endl << " Initial seed = " << seed << G4endl << G4endl; 
   
@@ -197,7 +202,17 @@ int main( int argc, char** argv) {
 
   // output name
   std::ofstream outfile(outname.c_str(), std::ofstream::out);
-  const G4double PionMass = 139.570 ; // MeV
+
+  //**** all ways use the first projectile ****//
+  G4String projectileName = vecProjectiles[ 0 ];
+  G4int projectilePID (-1);
+  G4double projectileMass (0.0);
+  theHadronicGenerator->GetProjectileInfo(projectileName, projectilePID, projectileMass);
+
+  G4cout << "Projectile: " << projectileName 
+         << "  PID: " << projectilePID 
+         << "  Mass: " << projectileMass << " MeV. " << G4endl;
+
   for ( G4int i = 0; i < numCollisions; ++i ) {
     // Draw some random numbers to select the hadron-nucleus interaction:
     // projectile hadron, projectile kinetic energy, projectile direction, and target material.
@@ -207,20 +222,23 @@ int main( int argc, char** argv) {
     rnd4 = CLHEP::HepRandom::getTheEngine()->flat();
     rnd5 = CLHEP::HepRandom::getTheEngine()->flat();
     rnd6 = CLHEP::HepRandom::getTheEngine()->flat();
-    // Sample the projectile kinetic energy
-    // projectileEnergy = minEnergy + rnd1*( maxEnergy - minEnergy );
-    projectileEnergy = 30.0*CLHEP::GeV;
 
-    if ( projectileEnergy <= 0.0 ) projectileEnergy = minEnergy; 
+    // Sample the projectile kinetic energy
+    projectileEnergy = minEnergy + rnd1*( maxEnergy - minEnergy );
+    // projectileEnergy = 30.0*CLHEP::GeV;
+
+    if ( projectileEnergy <= 0.0 ) projectileEnergy = minEnergy;
+
     // Sample the projectile direction
     normalization = 1.0/std::sqrt( rnd2*rnd2 + rnd3*rnd3 + rnd4*rnd4);
 
-    // G4ThreeVector aDirection = G4ThreeVector( normalization*rnd2, normalization*rnd3, normalization*rnd4 );
-    G4ThreeVector aDirection = G4ThreeVector(0.6, 0.6, 0.5291502622129182);
+    G4ThreeVector aDirection = G4ThreeVector( normalization*rnd2, normalization*rnd3, normalization*rnd4 );
+    // G4ThreeVector aDirection = G4ThreeVector(0.6, 0.6, 0.5291502622129182);
 
     // Sample the projectile hadron from the vector vecProjectiles
-    G4int index_projectile = std::trunc( rnd5*numProjectiles );
-    G4String nameProjectile = vecProjectiles[ index_projectile ];
+    // G4int index_projectile = std::trunc( rnd5*numProjectiles );
+    // G4String projectileName = vecProjectiles[ index_projectile ];
+
     // Sample the target material from the vector vecMaterials
     // (Note: the target nucleus will be sampled by Geant4)
     G4int index_material = std::trunc( rnd6*numMaterials );
@@ -231,33 +249,37 @@ int main( int argc, char** argv) {
       return 3;
     }
     // Call here the "hadronic generator" to get the secondaries produced by the hadronic collision
-    aChange = theHadronicGenerator->GenerateInteraction( nameProjectile, projectileEnergy, aDirection, material );
+    aChange = theHadronicGenerator->GenerateInteraction( projectileName, projectileEnergy, aDirection, material );
     //***********************************************************************************************************
     G4int nsec = aChange ? aChange->GetNumberOfSecondaries() : 0;
 
-    G4double pion_p2 = sqrt(projectileEnergy*projectileEnergy - PionMass*PionMass);
-    G4double pion_px = pion_p2*aDirection.x();
-    G4double pion_py = pion_p2*aDirection.y();
-    G4double pion_pz = pion_p2*aDirection.z();
+    G4double projectileMomentum = sqrt(projectileEnergy*projectileEnergy + 2*projectileEnergy*projectileMass);
+    G4double projectilePx = projectileMomentum*aDirection.x();
+    G4double projectilePy = projectileMomentum*aDirection.y();
+    G4double projectilePz = projectileMomentum*aDirection.z();
 
     if (verbose) G4cout << "\t #" << i << "\t Nsec=" << nsec << "\t" << projectileEnergy <<  aDirection <<  G4endl;
 
-    // outfile << "-211 " << aDirection.x() <<  " " << aDirection.y() << " " << aDirection.z() << " " << projectileEnergy;
-
-    outfile << "-211 " << projectileEnergy << " " << pion_px <<  " " << pion_py << " " << pion_pz;
+    /// <xju, 2022/10/28, `projectileEnergy` is the kinematic energy of the incoming particle.
+    /// to get the total energy of the system, `projectileEnergy + m_incoming + m_stationary`.
+    /// We use the `projectileEnergy` as the conditional information because it directly reflects the
+    /// validity region of the simulation model.
+    outfile << projectilePID << " " << std::setprecision(5) << std::fixed << projectileEnergy << " " << projectilePx 
+            <<  " " << projectilePy << " " << projectilePz;
 
     // Loop over produced secondaries and print out some information:
     // for each collision, the number of secondaries; every 100 collisions, the list of secondaries.
     for ( G4int j = 0; j < nsec; ++j ) {
       const G4DynamicParticle* sec = aChange->GetSecondary(j)->GetDynamicParticle();
-      if ( verbose && i%100 == 0 ) { 
-        G4cout << "\t j=" << j << "\t" << sec->GetDefinition()->GetParticleName() 
-          << "\t" << sec->GetDefinition()->GetPDGEncoding()
-				  << "\t p=" << sec->Get4Momentum() << " MeV" << G4endl;
-      }
+      // if ( verbose && i%100 == 0 ) { 
+      //   G4cout << "\t j=" << j << "\t" << sec->GetDefinition()->GetParticleName() 
+      //     << "\t" << sec->GetDefinition()->GetPDGEncoding()
+			// 	  << "\t p=" << sec->Get4Momentum() << " MeV" << G4endl;
+      // }
 
-      outfile << " " << sec->GetDefinition()->GetPDGEncoding() << " " << sec->Get4Momentum().e() << " " << sec->Get4Momentum().px() 
-          << " " << sec->Get4Momentum().py() << " " << sec->Get4Momentum().pz();
+      outfile << std::setprecision(5) << ";" << sec->GetDefinition()->GetPDGEncoding() 
+              << " " << sec->Get4Momentum().e() << " " << sec->Get4Momentum().px() 
+              << " " << sec->Get4Momentum().py() << " " << sec->Get4Momentum().pz();
 
 
       delete aChange->GetSecondary(j);
