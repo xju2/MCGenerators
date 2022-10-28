@@ -538,6 +538,15 @@ HadronicGenerator::~HadronicGenerator() {
   thePartTable->DeleteAllParticles();
 }
 
+void HadronicGenerator::GetProjectileInfo(const G4String& nameProjectile, G4int& pidProjectile, G4double& massProjectile) {
+  G4ParticleDefinition* projectileDefinition = thePartTable->FindParticle( nameProjectile );
+  if ( projectileDefinition == 0 ) {
+    G4cerr << "ERROR: Projectile " << nameProjectile << " not found !" << G4endl;
+    return ;
+  }
+  pidProjectile = projectileDefinition->GetPDGEncoding();
+  massProjectile = projectileDefinition->GetPDGMass();
+}
 
 G4bool HadronicGenerator::IsApplicable( const G4String &nameProjectile, const G4double projectileEnergy ) {
   G4ParticleDefinition* projectileDefinition = thePartTable->FindParticle( nameProjectile );
