@@ -79,6 +79,7 @@ class HadronicGenerator {
 
     G4bool IsPhysicsCaseSupported();
     // Returns "true" if the physicsCase is supported; "false" otherwise. 
+    void GetProjectileInfo(const G4String& nameProjectile, G4int& pidProjectile, G4double& massProjectile);
   
     G4bool IsApplicable( const G4String &nameProjectile, const G4double projectileEnergy );
     G4bool IsApplicable( G4ParticleDefinition* projectileDefinition, const G4double projectileEnergy );
