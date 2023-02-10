@@ -1,1 +1,6 @@
-build
+output
+notebooks
+*build*
+*so
+*yoda
+*root

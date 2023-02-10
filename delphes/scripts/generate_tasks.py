@@ -2,12 +2,16 @@
 """
 import os
 
+def write_jobs(jobs, fname):
+    with open(fname, 'w') as f:
+        f.write('\n'.join(jobs))
+        f.write('\n')
+
 def generate(njobs: int, py8cmnd: str, task_fname: str, shifter: bool,
-    exclude_ana: bool, delphes_dir: str, delphes_card: str):
-    # basedir = "/global/homes/x/xju/m3443/usr/xju/TauStudies/run_QCDPU"
+    minbias: str, delphes_card: str,
+    no_analysis: bool = False, no_delphes: bool = False
+    ):
     basedir = os.path.abspath(os.getcwd())
-    assert os.path.isdir(delphes_dir)
-    delphes_dir = os.path.abspath(delphes_dir)
 
     minbias = "MinBias.pileup"
     card = delphes_card
@@ -17,8 +21,8 @@ def generate(njobs: int, py8cmnd: str, task_fname: str, shifter: bool,
     ana_exe = "/global/cfs/cdirs/atlas/xju/software/MCGenerators/delphes/build_heptools/bin/AnaDelphes"
     analysis = f"{ana_exe}" + " -f {outname} -o processed_{outname}"
 
-    card = os.path.join(delphes_dir, 'cards', delphes_card)
-    minbias = os.path.join(delphes_dir, 'MinBias.pileup')
+    card = os.path.abspath(delphes_card)
+    minbias = os.path.abspath(minbias)
     py8cmnd = os.path.join(basedir, py8cmnd)
     config_files = [minbias, card, py8cmnd]
 
@@ -34,10 +38,17 @@ def generate(njobs: int, py8cmnd: str, task_fname: str, shifter: bool,
         analysis = "shifter " + analysis
 
     cmd_list = ["ln -s {}".format(x) for x in config_files]
-    if exclude_ana:
-        cmd_list += [delphe]
+    
+    if no_delphes and not no_analysis:
+        cmd_list.append(analysis)
+    elif not no_delphes and no_analysis:
+        cmd_list.append(delphe)
+    elif no_delphes and no_analysis:
+        raise RuntimeError("no_delphes and no_analysis cannot be both True")
     else:
-        cmd_list += [delphe, analysis]
+        cmd_list.append(delphe)
+        cmd_list.append(analysis)
+
 
     command = " && ".join(cmd_list)
 
@@ -48,9 +59,17 @@ def generate(njobs: int, py8cmnd: str, task_fname: str, shifter: bool,
         outname = outname_base.format(ijob)
         jobs.append(command.format(outname=outname))
 
-    with open(task_fname, 'w') as f:
-        f.write('\n'.join(jobs))
-        f.write('\n')
+    write_jobs(jobs, task_fname)
+
+
+def generate_runs(njobs: int, py8cmnd: str, delphes_card: str, task_fname: str, *args, **kwargs):
+    exe = os.path.abspath("run.sh")
+    jobs = []
+    for ijob in range(njobs):
+        cmd = " ".join([exe, py8cmnd, delphes_card, "{:05}".format(ijob)])
+        jobs.append(cmd)
+
+    write_jobs(jobs, task_fname)
 
 if __name__ == '__main__':
     import argparse
@@ -58,10 +77,11 @@ if __name__ == '__main__':
     add_arg = parser.add_argument
     add_arg('py8cmnd', help='Py8 command lines')
     add_arg('task_fname', help='task output name')
+    add_arg("delphes_card", help="delphes card")
     add_arg('--shifter', action='store_true', help='using shifter container')
     add_arg('-n', '--njobs', help='Number of jobs', default=100, type=int)
-    add_arg('-e', "--exclude-ana", action='store_true', help='exclude analysis')
-    add_arg('-c', '--delphes-card', default='delphes_card_ATLAS_PileUp.tcl', help='delphes card')
-    add_arg('-d', '--delphes-dir', default='/code/Delphes-3.5.0', help='delphes directory')
+    add_arg('-m', '--minbias', default='MinBias.pileup', help='MiniBias file')
+    add_arg('--no-delphes', action='store_true', help='do not run delphes')
+    add_arg('--no-analysis', action='store_true', help='do not run analysis')
     args = parser.parse_args()
-    generate(**vars(args))
+    generate_runs(**vars(args))

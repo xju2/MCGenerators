@@ -39,6 +39,7 @@
 #include "G4NistManager.hh"
 #include "G4VParticleChange.hh"
 #include "G4UnitsTable.hh"
+#include "G4DynamicParticle.hh"
 #include "G4SystemOfUnits.hh"
 #include "HadronicGenerator.hh"
 #include "CLHEP/Random/Randomize.h" 
