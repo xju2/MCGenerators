@@ -19,5 +19,7 @@ cmake .. && make
 
 To run the program:
 ```bash
-./bin/pythia ../cmnds/zee.cmnd test.hepmc
+mkfifo test.hepmc
+./bin/pythiaToHepMC3 ../cmnds/zmumu.cmnd test.hepmc &
+rivet -a ATLAS_2019_I1736531 test.hepmc
 ```
