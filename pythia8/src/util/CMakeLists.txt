@@ -12,14 +12,15 @@ endif()
 
 # include_directories(${HEPMC_DIR}/include)
 # link_directories   (${HEPMC_DIR}/lib)
-
-# add pythia executables
-add_executable(pythiaToHepMC2 pythiaToHepMC2.cxx)
-set_target_properties(pythiaToHepMC2 PROPERTIES LINKER_LANGUAGE CXX)
-target_link_libraries(pythiaToHepMC2 pythia8 HepMC)
-# target_include_directories(
-# 	pythiaToHepMC2 PRIVATE )
-install(TARGETS pythiaToHepMC2 DESTINATION bin)
+if (EXISTS ${HEPMC_DIR})
+	# add pythia executables
+	add_executable(pythiaToHepMC2 pythiaToHepMC2.cxx)
+	set_target_properties(pythiaToHepMC2 PROPERTIES LINKER_LANGUAGE CXX)
+	target_link_libraries(pythiaToHepMC2 pythia8 HepMC)
+	# target_include_directories(
+	# 	pythiaToHepMC2 PRIVATE )
+	install(TARGETS pythiaToHepMC2 DESTINATION bin)
+endif()
 
 add_executable(pythiaToHepMC3 pythiaToHepMC3.cxx)
 set_target_properties(pythiaToHepMC3 PROPERTIES LINKER_LANGUAGE CXX)
