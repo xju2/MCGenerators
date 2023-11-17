@@ -66,7 +66,7 @@ function digi() {
 
 # measurements to spacepoints
 function meas2sp() {
-	$SHIFTER $ACTSBINDIR/ActsExampleMeasurementsToSPGeneric $BFIELD --output-dir $OUTDIR \
+	$SHIFTER $ACTSBINDIR/ActsExampleMeasurements2SPGeneric $BFIELD --output-dir $OUTDIR \
 		--output-csv --input-dir $OUTDIR -j $NWORKERS
 }
 
