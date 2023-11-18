@@ -29,6 +29,9 @@ parser.add_argument(
     help="Use Pythia8 (ttbar, pile-up 200) instead of particle gun",
     action="store_true",
 )
+parser.add_argument(
+    "--seed",
+    help="set RNG seed", default=42, type=int)
 
 args = vars(parser.parse_args())
 
@@ -54,7 +57,7 @@ detector, trackingGeometry, decorators = getOpenDataDetector(
     geoDir, mdecorator=oddMaterialDeco
 )
 field = acts.ConstantBField(acts.Vector3(0.0, 0.0, 2.0 * u.T))
-rnd = acts.examples.RandomNumbers(seed=42)
+rnd = acts.examples.RandomNumbers(seed=args["seed"])
 
 # TODO Geant4 currently crashes with FPE monitoring
 #with acts.FpeMonitor() if not g4_simulation else contextlib.nullcontext():
