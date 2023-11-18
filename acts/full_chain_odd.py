@@ -63,6 +63,7 @@ with contextlib.nullcontext():
         events=args["events"],
         numThreads=1,
         outputDir=str(outputDir),
+        trackFpes=False,
     )
 
     if not ttbar_pu200:
