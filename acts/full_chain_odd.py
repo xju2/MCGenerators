@@ -46,7 +46,7 @@ oddFieldMap = geoDir / "data/odd-field.root"
 oddDigiConfig = geoDir / "config/odd-digi-smearing-config.json"
 oddSeedingSel = geoDir / "config/odd-seeding-config.json"
 
-oddSpacepointSel = oddSeedingSel
+oddSpacepointSel = geoDir / "config/odd-sp-config.json"
 
 oddMaterialDeco = acts.IMaterialDecorator.fromFile(oddMaterialMap)
 
