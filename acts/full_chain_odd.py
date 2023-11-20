@@ -13,6 +13,7 @@ from acts.examples.simulation import (
     ParticleSelectorConfig,
     addDigitization,
 )
+from acts.examples import CsvTrackingGeometryWriter
 
 from acts.examples.reconstruction import addSpacePointsMaking
 
@@ -24,24 +25,22 @@ parser.add_argument("--events", "-n", help="Number of events", type=int, default
 parser.add_argument(
     "--geant4", help="Use Geant4 instead of fatras", action="store_true"
 )
-parser.add_argument(
-    "--ttbar",
-    help="Use Pythia8 (ttbar, pile-up 200) instead of particle gun",
-    action="store_true",
-)
-parser.add_argument(
-    "--seed",
-    help="set RNG seed", default=42, type=int)
+parser.add_argument("--seed", help="set RNG seed", default=42, type=int)
+parser.add_argument("--outdir", help="output directory", default="odd_output")
+parser.add_argument("-t", "--threads", help="# of threads", default=1, type=int)
 
 args = vars(parser.parse_args())
 
-ttbar_pu200 = args["ttbar"]
+ttbar_pu200 = True
 g4_simulation = args["geant4"]
 
 u = acts.UnitConstants
 
 geoDir = Path("../thirdparty/OpenDataDetector")
-outputDir = pathlib.Path.cwd() / "odd_output"
+outdir = "{}_ttbar_{}evts_s{}".format(args["outdir"], args["events"], args["seed"])
+outputDir = pathlib.Path.cwd() / args["outdir"]
+print("output directory: ", outputDir)
+
 # acts.examples.dump_args_calls(locals())  # show python binding calls
 
 oddMaterialMap = geoDir / "data/odd-material-maps.root"
@@ -64,10 +63,18 @@ rnd = acts.examples.RandomNumbers(seed=args["seed"])
 with contextlib.nullcontext():
     s = acts.examples.Sequencer(
         events=args["events"],
-        numThreads=1,
+        numThreads=args["threads"],
         outputDir=str(outputDir),
         trackFpes=False,
     )
+
+    # geo writer
+    geo_writer =  CsvTrackingGeometryWriter(
+        level=acts.logging.INFO,
+        trackingGeometry=trackingGeometry,
+        outputDir=str(outputDir),
+        writePerEvent=False)
+    s.addWriter(geo_writer)
 
     if not ttbar_pu200:
         addParticleGun(
