@@ -29,9 +29,9 @@ def generate_events(num_events: int, seed: int, outdir: str):
     u = acts.UnitConstants
 
     geoDir = Path("/pscratch/sd/x/xju/LLMTracking/acts/thirdparty/OpenDataDetector")
-    outdir = "{}_ttbar_{}evts_s{}".format(outdir, num_events, seed)
-    outputDir = pathlib.Path.cwd() / outdir
-    print("output directory: ", outputDir)
+    outname = "ttbar_{}evts_s{}".format(num_events, seed)
+    Path(outdir).mkdir(parents=True, exist_ok=True)
+    outputDir = outdir / outname
 
     # acts.examples.dump_args_calls(locals())  # show python binding calls
 
