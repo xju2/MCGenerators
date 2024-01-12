@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import pathlib, contextlib, acts, acts.examples
+import contextlib, acts, acts.examples
 from pathlib import Path
 
 from acts.examples.simulation import (
@@ -20,17 +20,16 @@ from acts.examples.reconstruction import addSpacePointsMaking
 
 from acts.examples.odd import getOpenDataDetector
 
-def generate_events(num_events: int, seed: int, outdir: str):
-
-    ttbar_pu200 = True
-    g4_simulation = True
-    num_threads = 1
+def generate_events(num_events: int, seed: int, outdir: str, 
+                    g4_simulation: bool = False, ttbar_pu200: bool = False,
+                    num_threads: int = 2):
 
     u = acts.UnitConstants
 
     geoDir = Path("/pscratch/sd/x/xju/LLMTracking/acts/thirdparty/OpenDataDetector")
     outname = "ttbar_{}evts_s{}".format(num_events, seed)
-    Path(outdir).mkdir(parents=True, exist_ok=True)
+    outdir = Path(outdir)
+    outdir.mkdir(parents=True, exist_ok=True)
     outputDir = outdir / outname
 
     # acts.examples.dump_args_calls(locals())  # show python binding calls
