@@ -188,5 +188,15 @@ if __name__ == "__main__":
         default=".",
         help="Output directory for the generated events",
     )
+    parser.add_argument("-m", "--pileup", type=int, default=200, help="Number of pileup events")
+    parser.add_argument(
+        '-t',
+        "--num-threads",
+        type=int,
+        default=2,
+        help="Number of threads to use in the simulation"
+    )
     args = parser.parse_args()
-    generate_events(args.num_events, args.seed, args.outdir)
+    generate_events(args.num_events, args.seed, args.outdir,
+                    pileup=args.pileup,
+                    num_threads=args.num_threads)
